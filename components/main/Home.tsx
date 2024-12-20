@@ -59,7 +59,7 @@ const Home = ({ habits }: { habits: Habit[] }) => {
         new Date(log.date).getMonth() === date?.getMonth() &&
         new Date(log.date).getDate() === date?.getDate()
     );
-    return currentDateLogs.some((log) => log.habit_id === habitId);
+    return currentDateLogs.findLast((log) => log.habit_id === habitId)?.status;
   };
 
   return (
