@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { updateHabit, updateLog, getLogs } from "@/app/actions";
-import { Habit } from "./types";
+import { Habit, Log } from "./types";
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -20,11 +20,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 const Home = ({ habits }: { habits: Habit[] }) => {
   const [selectedHabits, setSelectedHabits] = useState<Habit[]>([]);
   useEffect(() => {
-    const selectedHabits = habits.filter((habit) => habit.selected);
+    const selectedHabits = habits?.filter((habit) => habit.selected);
     setSelectedHabits(selectedHabits);
   }, [habits]);
 
-  const isHabitSelected = (habitId: string) =>
+  const isHabitSelected = (habitId: number) =>
     selectedHabits.find((habit) => habit.id === habitId);
 
   const toggleHabbitSelection = (habit: Habit) => {
@@ -40,7 +40,7 @@ const Home = ({ habits }: { habits: Habit[] }) => {
   };
 
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [logs, setLogs] = useState([]);
+  const [logs, setLogs] = useState<Log[] | undefined>();
   useEffect(() => {
     const getLogsForDate = async () => {
       const allLogs = await getLogs();
@@ -50,6 +50,17 @@ const Home = ({ habits }: { habits: Habit[] }) => {
     };
     getLogsForDate();
   }, [date]);
+
+  const isChecked = (habitId: number) => {
+    if (!logs?.length) return;
+    const currentDateLogs = logs.filter(
+      (log) =>
+        new Date(log.date).getFullYear() === date?.getFullYear() &&
+        new Date(log.date).getMonth() === date?.getMonth() &&
+        new Date(log.date).getDate() === date?.getDate()
+    );
+    return currentDateLogs.some((log) => log.habit_id === habitId);
+  };
 
   return (
     <div className="w-full">
@@ -84,19 +95,23 @@ const Home = ({ habits }: { habits: Habit[] }) => {
         </Dialog>
       </div>
       <div className="mt-16">
-        {selectedHabits.length > 0 ? (
+        {selectedHabits?.length > 0 && logs ? (
           <div>
             <h2 className="font-bold text-2xl">My habits</h2>
             {selectedHabits.map((habit) => (
-              <div key={habit.id} className="flex items-center space-x-2 mt-10">
+              <div
+                key={`${habit.id}${date}`}
+                className="flex items-center space-x-2 mt-10"
+              >
                 <Checkbox
-                  id={habit.id}
+                  id={habit.id.toString()}
                   onCheckedChange={(isChecked) =>
                     updateLog({ habitId: habit.id, isChecked, date })
                   }
+                  defaultChecked={isChecked(habit.id)}
                 />
                 <label
-                  htmlFor={habit.id}
+                  htmlFor={habit.id.toString()}
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
                   {habit.name}

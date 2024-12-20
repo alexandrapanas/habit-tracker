@@ -6,7 +6,7 @@ export const updateHabit = async ({
   habitId,
   isSelected,
 }: {
-  habitId: string;
+  habitId: number;
   isSelected: boolean;
 }) => {
   try {
@@ -28,14 +28,17 @@ export const updateLog = async ({
   isChecked,
   date,
 }: {
-  habitId: string;
+  habitId: number;
   isChecked: boolean | string;
   date: Date | undefined;
 }) => {
+  if (!date) return;
   try {
-    const { error } = await supabase
-      .from("habit_logs")
-      .insert({ habit_id: habitId, date: date, status: isChecked });
+    const { error } = await supabase.from("habit_logs").insert({
+      habit_id: habitId,
+      date: date,
+      status: isChecked,
+    });
     console.log({ error });
   } catch (error) {
     console.log(error);
